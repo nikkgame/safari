@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+  <style>
+    #fd-chatLeft {
+      display: none;
+    }
+
+    .fd-send-button {
+      background-color: #c7c7c7;
+      width: 37px;
+      height: 37px;
+      background-image: url(https://cdn.juvoleads.com/images/icon-send.png);
+      background-repeat: no-repeat;
+      background-size: 21px;
+      background-position: center;
+      border-radius: 50%;
+      bottom: 5px;
+      right: 4px;
+      position: absolute;
+    }
+
+    .fd-send-button:hover {
+      background-color: #8a8a8a;
+      cursor: pointer;
+    }
+
+    .fd-blink {
+      animation: blink-animation 2s steps(5, start) infinite;
+      -webkit-animation: blink-animation 2s steps(5, start) infinite;
+    }
+
+    @keyframes blink-animation {
+      to {
+        visibility: hidden;
+      }
+    }
+
+    @-webkit-keyframes blink-animation {
+      to {
+        visibility: hidden;
+      }
+    }
+
+    .juvo-chat-color {
+      background-color: #848484;
+      background-color: #41ad49;
+    }
+
+    #fd-chat-tab {
+      z-index: 9999999999;
+      display: none;
+      position: fixed;
+      bottom: 0;
+      right: 20px;
+      width: 350px;
+      height: 40px;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+      border-radius: 25px;
+      overflow: hidden;
+      bottom: 20px;
+      width: 250px;
+      border-radius: 100px !important;
+      box-shadow: 0 3px 15px 0 rgba(0, 0, 0, 0.25) !important;
+    }
+
+    #fd-chat-tab:hover {
+      cursor: pointer;
+    }
+
+    #fd-chat form {
+      padding: 0;
+      margin: 0;
+      width: inherit;
+    }
+
+    #fd-chat {
+      text-align: left;
+      z-index: 9999999999;
+      position: fixed;
+      display: none;
+      bottom: 0;
+      right: 20px;
+      width: 350px;
+      height: 500px;
+      border: 1px solid #848484;
+      background-color: #fff;
+      font-family: "Open Sans", arial, sans-serif;
+      box-shadow: 0 0 120px rgba(0, 0, 0, 0.33);
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+    }
+
+    .fd-header {
+      font-family: "Open Sans", arial, sans-serif;
+      color: #fff;
+      line-height: 40px;
+      padding-left: 20px;
+      font-size: 18px;
+    }
+
+    .chat-log {
+      height: 407px;
+      padding: 20px;
+      overflow-y: auto;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+    }
+
+    .fd-message {
+      margin-bottom: 20px;
+      position: relative;
+      word-break: break-word;
+    }
+
+    .fd-avatar {
+      border-radius: 50% !important;
+      width: 37px;
+      height: 37px;
+      background-color: #e2e2e2;
+      display: inline-block;
+      background-image: url("https://cdn.juvoleads.com/images/agent-erika.jpg");
+      background-size: contain;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+
+    .fd-agent,
+    .fd-user {
+      padding-top: 5px;
+      padding-bottom: 5px;
+      padding-left: 10px;
+      padding-right: 10px;
+      display: inline-block;
+      max-width: 70%;
+      font-size: 14px;
+      line-height: 18px;
+      text-align: left;
+      -webkit-border-radius: 10px !important;
+      -moz-border-radius: 10px !important;
+      border-radius: 10px !important;
+      background-color: rgba(216, 216, 216, 0.2);
+      color: #000;
+      border: 1px solid #b8b8b8;
+    }
+
+    .fd-user {
+      background-color: #a3e4ff;
+      border: 1px solid #75bfdf;
+      float: right;
+      border-bottom-right-radius: 0px !important;
+    }
+
+    .fd-userSelect {
+      border: 1px solid #000;
+      color: black;
+      background-color: #fff;
+      margin-left: 10px;
+      margin-bottom: 10px;
+    }
+
+    .fd-userSelect:hover {
+      background-color: black;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .fd-message:after {
+      content: "";
+      display: block;
+      clear: both;
+    }
+
+    .fd-agent {
+      border-bottom-left-radius: 0px !important;
+      margin-left: 45px;
+    }
+
+    .fd-agentMessage .fd-timeStamp {
+      font-size: 10px;
+      text-align: right;
+      color: gray;
+      float: right;
+      margin-right: -10px;
+      margin-top: 0px;
+    }
+
+    .fd-userMessage .fd-timeStamp {
+      font-size: 12px;
+      text-align: left;
+      color: gray;
+    }
+
+    .fd-footer {
+      height: 51px;
+      width: 100%;
+      position: absolute;
+      bottom: 0;
+      background-color: #f5f5f5;
+      border-top: 1px solid #ccc;
+    }
+
+    input.chat-input[type="text"] {
+      opacity: 1;
+      box-shadow: 0 4px 23px 0 rgba(0, 0, 0, 0.15) !important;
+    }
+
+    input.chat-input[type="text"] {
+      border-radius: 0px !important;
+      height: 50px !important;
+      margin: 0px !important;
+      background-color: #fff !important;
+      font-size: 16px !important;
+      padding: 10px !important;
+      padding-right: 50px !important;
+      width: 100% !important;
+      font-weight: normal !important;
+      color: black !important;
+      border: 1px solid #ffffff !important;
+      -moz-box-sizing: border-box !important;
+      -webkit-box-sizing: border-box !important;
+      box-sizing: border-box !important;
+    }
+
+    input.chat-input[type="text"]::-webkit-input-placeholder {
+      color: black !important;
+    }
+
+    input.chat-input[type="text"]:-moz-placeholder {
+      color: black !important;
+    }
+
+    input.chat-input[type="text"]::-moz-placeholder {
+      color: black !important;
+    }
+
+    input.chat-input[type="text"]:-ms-input-placeholder {
+      color: black !important;
+    }
+
+    input.chat-input[type="text"]:focus::-webkit-input-placeholder {
+      color: #ffffff;
+    }
+
+    .fd-header {}
+
+    #fd-chat-tab .fd-header {
+      background-image: url(//cdn.juvoleads.com/images/icon-chat2.png);
+      background-size: 33px;
+      background-repeat: no-repeat;
+      padding-left: 60px;
+      background-position: left 20px center;
+    }
+
+    #fd-chat-tab:hover .fd-header {
+      opacity: 0.9;
+    }
+
+    .fd-animated {
+      -webkit-animation-duration: 1s;
+      animation-duration: 1s;
+      -webkit-animation-fill-mode: both;
+      animation-fill-mode: both;
+    }
+
+    @-webkit-keyframes slideOutDown {
+      from {
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+      }
+
+      to {
+        visibility: hidden;
+        -webkit-transform: translate3d(0, 100%, 0);
+        transform: translate3d(0, 100%, 0);
+      }
+    }
+
+    @keyframes slideOutDown {
+      from {
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+      }
+
+      to {
+        visibility: hidden;
+        -webkit-transform: translate3d(0, 100%, 0);
+        transform: translate3d(0, 100%, 0);
+      }
+    }
+
+    .slideOutDown {
+      -webkit-animation-name: slideOutDown;
+      animation-name: slideOutDown;
+    }
+
+    @-webkit-keyframes slideInUp {
+      from {
+        -webkit-transform: translate3d(0, 100%, 0);
+        transform: translate3d(0, 100%, 0);
+        visibility: visible;
+      }
+
+      to {
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
+    @keyframes slideInUp {
+      from {
+        -webkit-transform: translate3d(0, 100%, 0);
+        transform: translate3d(0, 100%, 0);
+        visibility: visible;
+      }
+
+      to {
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
+    .slideInUp {
+      -webkit-animation-name: slideInUp;
+      animation-name: slideInUp;
+    }
+
+    .slideUp {
+      transform: translate(0px, 60px);
+      -webkit-transition: 0.5s ease-in-out;
+      -moz-transition: 0.5s ease-in-out;
+      -o-transition: 0.5s ease-in-out;
+      transition: 0.5s ease-in-out;
+      opacity: 0;
+    }
+
+    .slideUp.done {
+      transform: translate(0px, 0px);
+      opacity: 1;
+    }
+
+    .fd-icon-close {
+      background-image: url(//cdn.juvoleads.com/images/icon-close.png);
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: inherit;
+      width: 20px;
+      height: 20px;
+      opacity: 0.5;
+      position: absolute;
+      right: 10px;
+      top: 10px;
+    }
+
+    .fd-icon-close:hover {
+      opacity: 1;
+      cursor: pointer;
+    }
+
+    #fd-mobile-launcher {
+      z-index: 2147483641;
+      display: none;
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+    }
+
+    #fd-mobile-avatar {
+      box-shadow: 0 6px 13px 0 rgba(0, 0, 0, 0.23);
+      border-radius: 50% !important;
+      background-image: url("https://cdn.juvoleads.com/images/agent-erika.jpg");
+      background-size: contain;
+      width: 50px;
+      height: 50px;
+      position: absolute;
+      right: 0;
+      bottom: 0;
+    }
+
+    #fd-mobile-greeting {
+      position: relative;
+      overflow: hidden;
+      background-color: #ccc;
+      border: 1px solid #a3a3a3;
+      border-radius: 5px !important;
+      font-size: 14px;
+      min-width: 210px;
+      position: absolute;
+      right: 0px;
+      bottom: 55px;
+      font-family: "Open Sans", arial, sans-serif;
+      box-shadow: 0 6px 13px 0 rgba(0, 0, 0, 0.23);
+      background: -moz-linear-gradient(top, #ffffff 0, #e0e0e0 100%);
+      background: -webkit-linear-gradient(top, #ffffff 0, #e0e0e0 100%);
+      background: linear-gradient(to bottom, #ffffff 0, #e0e0e0 100%);
+    }
+
+    #fd-mobile-greeting-message {
+      padding: 10px;
+      font-size: 14px;
+      color: black;
+    }
+
+    #fd-mobile-count {
+      border-radius: 50% !important;
+      background-color: red;
+      color: #fff;
+      width: 20px;
+      height: 20px;
+      position: absolute;
+      bottom: 37px;
+      right: 0;
+      text-align: center;
+      font-family: "Open Sans", arial, sans-serif;
+      font-size: 10px;
+      line-height: 20px;
+    }
+
+    #fd-mobile-choices {
+      border-top: 1px solid rgba(0, 0, 0, 0.2);
+    }
+
+    #fd-mobile-accept {
+      color: #057300;
+      width: 50%;
+      line-height: 30px;
+      border-right: 1px solid rgba(0, 0, 0, 0.2);
+      margin-left: -1px;
+      float: left;
+      text-align: center;
+      background: rgba(226, 246, 231, 1);
+      background: -moz-linear-gradient(top,
+          rgba(226, 246, 231, 1) 0,
+          rgba(184, 234, 198, 1) 100%);
+      background: -webkit-gradient(left top,
+          left bottom,
+          color-stop(0%, rgba(226, 246, 231, 1)),
+          color-stop(100%, rgba(184, 234, 198, 1)));
+      background: -webkit-linear-gradient(top,
+          rgba(226, 246, 231, 1) 0,
+          rgba(184, 234, 198, 1) 100%);
+      background: -o-linear-gradient(top,
+          rgba(226, 246, 231, 1) 0,
+          rgba(184, 234, 198, 1) 100%);
+      background: -ms-linear-gradient(top,
+          rgba(226, 246, 231, 1) 0,
+          rgba(184, 234, 198, 1) 100%);
+      background: linear-gradient(to bottom,
+          rgba(226, 246, 231, 1) 0,
+          rgba(184, 234, 198, 1) 100%);
+    }
+
+    #fd-mobile-sms {
+      width: 50%;
+      line-height: 30px;
+      float: left;
+      text-align: center;
+      display: none;
+    }
+
+    .fd-mobile-reject-x {
+      display: none;
+      width: 20px;
+      height: 20px;
+      position: absolute;
+      right: 0;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 20px;
+      background-color: #c3c3c3;
+      color: #fff;
+      margin: 2px;
+    }
+
+    #fd-mobile-reject {
+      color: #c06f6f;
+      width: 50%;
+      line-height: 30px;
+      float: left;
+      text-align: center;
+      background: rgba(253, 244, 244, 1);
+      background: -moz-linear-gradient(top,
+          rgba(253, 244, 244, 1) 0,
+          rgba(248, 206, 206, 1) 100%);
+      background: -webkit-gradient(left top,
+          left bottom,
+          color-stop(0%, rgba(253, 244, 244, 1)),
+          color-stop(100%, rgba(248, 206, 206, 1)));
+      background: -webkit-linear-gradient(top,
+          rgba(253, 244, 244, 1) 0,
+          rgba(248, 206, 206, 1) 100%);
+      background: -o-linear-gradient(top,
+          rgba(253, 244, 244, 1) 0,
+          rgba(248, 206, 206, 1) 100%);
+      background: -ms-linear-gradient(top,
+          rgba(253, 244, 244, 1) 0,
+          rgba(248, 206, 206, 1) 100%);
+      background: linear-gradient(to bottom,
+          rgba(253, 244, 244, 1) 0,
+          rgba(248, 206, 206, 1) 100%);
+    }
+
+    @media (max-width: 480px) {
+      #fd-chat {
+        right: 0;
+        width: 100%;
+        height: 100vh !important;
+      }
+
+      #fd-chat-tab {
+        display: none;
+        right: 0;
+        width: 100%;
+        bottom: 10;
+      }
+
+      #fd-mobile-launcher {
+        display: block;
+      }
+    }
+
+    @-webkit-keyframes fadeInUp {
+      from {
+        opacity: 0;
+        -webkit-transform: translate3d(0, 100%, 0);
+        transform: translate3d(0, 100%, 0);
+      }
+
+      to {
+        opacity: 1;
+        -webkit-transform: none;
+        transform: none;
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        -webkit-transform: translate3d(0, 100%, 0);
+        transform: translate3d(0, 100%, 0);
+      }
+
+      to {
+        opacity: 1;
+        -webkit-transform: none;
+        transform: none;
+      }
+    }
+
+    .fadeInUp {
+      -webkit-animation-name: fadeInUp;
+      animation-name: fadeInUp;
+    }
+
+    .fd-powered-bar {
+      font-size: 11px;
+      height: 20px;
+      line-height: 20px;
+      bottom: 0px;
+      position: absolute;
+      text-align: center;
+      width: 100%;
+      color: #424242;
+      font-family: arial;
+    }
+
+    a.fd-powered-link {
+      color: #424242;
+    }
+
+    a.fd-powered-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="page-content">
+    <div style="height: 100px; background-color: gray"></div>
+    <h1 style="color: red">
+      To view the chat widget please view on an iPhone
+    </h1>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua. Turpis massa sed
+      elementum tempus egestas. Vel pharetra vel turpis nunc eget lorem dolor
+      sed. Quisque id diam vel quam elementum pulvinar. Bibendum arcu vitae
+      elementum curabitur vitae nunc. In nulla posuere sollicitudin aliquam
+      ultrices sagittis orci a scelerisque. Risus pretium quam vulputate
+      dignissim suspendisse. Sit amet porttitor eget dolor morbi non. Nec dui
+      nunc mattis enim ut. Sit amet commodo nulla facilisi nullam vehicula
+      ipsum a. Nulla at volutpat diam ut venenatis tellus in. Senectus et
+      netus et malesuada fames ac turpis egestas.
+    </p>
+
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua. Turpis massa sed
+      elementum tempus egestas. Vel pharetra vel turpis nunc eget lorem dolor
+      sed. Quisque id diam vel quam elementum pulvinar. Bibendum arcu vitae
+      elementum curabitur vitae nunc. In nulla posuere sollicitudin aliquam
+      ultrices sagittis orci a scelerisque. Risus pretium quam vulputate
+      dignissim suspendisse. Sit amet porttitor eget dolor morbi non. Nec dui
+      nunc mattis enim ut. Sit amet commodo nulla facilisi nullam vehicula
+      ipsum a. Nulla at volutpat diam ut venenatis tellus in. Senectus et
+      netus et malesuada fames ac turpis egestas.
+    </p>
+
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua. Turpis massa sed
+      elementum tempus egestas. Vel pharetra vel turpis nunc eget lorem dolor
+      sed. Quisque id diam vel quam elementum pulvinar. Bibendum arcu vitae
+      elementum curabitur vitae nunc. In nulla posuere sollicitudin aliquam
+      ultrices sagittis orci a scelerisque. Risus pretium quam vulputate
+      dignissim suspendisse. Sit amet porttitor eget dolor morbi non. Nec dui
+      nunc mattis enim ut. Sit amet commodo nulla facilisi nullam vehicula
+      ipsum a. Nulla at volutpat diam ut venenatis tellus in. Senectus et
+      netus et malesuada fames ac turpis egestas.
+    </p>
+
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua. Turpis massa sed
+      elementum tempus egestas. Vel pharetra vel turpis nunc eget lorem dolor
+      sed. Quisque id diam vel quam elementum pulvinar. Bibendum arcu vitae
+      elementum curabitur vitae nunc. In nulla posuere sollicitudin aliquam
+      ultrices sagittis orci a scelerisque. Risus pretium quam vulputate
+      dignissim suspendisse. Sit amet porttitor eget dolor morbi non. Nec dui
+      nunc mattis enim ut. Sit amet commodo nulla facilisi nullam vehicula
+      ipsum a. Nulla at volutpat diam ut venenatis tellus in. Senectus et
+      netus et malesuada fames ac turpis egestas.
+    </p>
+
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua. Turpis massa sed
+      elementum tempus egestas. Vel pharetra vel turpis nunc eget lorem dolor
+      sed. Quisque id diam vel quam elementum pulvinar. Bibendum arcu vitae
+      elementum curabitur vitae nunc. In nulla posuere sollicitudin aliquam
+      ultrices sagittis orci a scelerisque. Risus pretium quam vulputate
+      dignissim suspendisse. Sit amet porttitor eget dolor morbi non. Nec dui
+      nunc mattis enim ut. Sit amet commodo nulla facilisi nullam vehicula
+      ipsum a. Nulla at volutpat diam ut venenatis tellus in. Senectus et
+      netus et malesuada fames ac turpis egestas.
+    </p>
+
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua. Turpis massa sed
+      elementum tempus egestas. Vel pharetra vel turpis nunc eget lorem dolor
+      sed. Quisque id diam vel quam elementum pulvinar. Bibendum arcu vitae
+      elementum curabitur vitae nunc. In nulla posuere sollicitudin aliquam
+      ultrices sagittis orci a scelerisque. Risus pretium quam vulputate
+      dignissim suspendisse. Sit amet porttitor eget dolor morbi non. Nec dui
+      nunc mattis enim ut. Sit amet commodo nulla facilisi nullam vehicula
+      ipsum a. Nulla at volutpat diam ut venenatis tellus in. Senectus et
+      netus et malesuada fames ac turpis egestas.
+    </p>
+  </div>
+
+  <!--- Chat Widget --->
+  <div id="fd-chat" class="" style="display: none">
+    <div id="fd-chatWindow">
+      <div class="fd-header juvo-chat-color">
+        <span>Live Chat Online</span>
+        <div class="fd-icon-close"></div>
+      </div>
+      <div id="fd-chatLeft" class="juvo-chat-color">
+        <div class="fd-chatLeft-text" style="
+              font-style: italic;
+              font-weight: bold;
+              line-height: normal;
+              color: #ffffff;
+            ">
+          <div style="font-size: 43px">Hello!</div>
+          <div style="font-size: 17px">We are online!</div>
+          <div style="font-size: 17px">We are here to chat!</div>
+        </div>
+        <div class="fd-spacer"></div>
+        <div class="fd-chatLeft-avatar">
+          <img src="https://cdn.juvoleads.com/images/agent-erika.jpg" style="
+                float: left;
+                text-align: left;
+                border-radius: 50% !important;
+                width: 62px;
+                margin: 0px;
+                margin-right: 10px;
+              " />
+          <div style="color: #fff; text-align: left; font-size: 17px">
+            <div>Erika</div>
+            <div>Online Agent</div>
+          </div>
+          <div style="clear: both"></div>
+          <div class="fd-spacer"></div>
+        </div>
+        <div style="color: #fff; font-size: 22px">844-669-0637</div>
+        <div class="fd-spacer"></div>
+      </div>
+      <div class="chat-log">
+        <div id="message_" class="fd-message fd-animated fd-agentMessage">
+          <div class="fd-avatar"></div>
+          <div class="fd-agent">Hi, my name is Erika.</div>
+          <div class="fd-timeStamp">11:14 am</div>
+        </div>
+        <div id="message_" class="fd-message fd-animated fd-agentMessage">
+          <div class="fd-avatar"></div>
+          <div class="fd-agent">
+            Do you have any questions I can help with?
+          </div>
+          <div class="fd-timeStamp">11:14 am</div>
+        </div>
+      </div>
+      <div class="fd-footer">
+        <form id="chat-form">
+          <div class="fd-send-button"></div>
+          <input class="chat-input" type="text" name="chat-input" placeholder="Type your message here..." />
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="fd-mobile-launcher">
+    <div id="fd-mobile-greeting" class="slideUp slideUp2">
+      <div class="fd-mobile-reject-x">X</div>
+      <div id="fd-mobile-greeting-message"></div>
+      <div id="fd-mobile-choices" class="slideUp">
+        <div id="fd-mobile-accept">Start Chat</div>
+        <div id="fd-mobile-reject">No Thanks</div>
+        <a href="sms:844-669-0637" id="fd-mobile-sms">Text Us Now</a>
+        <div style="clear: both"></div>
+      </div>
+    </div>
+    <div id="fd-mobile-avatar" class="slideUp slideUp1 done">
+      <div id="fd-mobile-count">1</div>
+    </div>
+  </div>
+
+  <script type="text/javascript" src="https://juvoleads.com/wp-includes/js/jquery/jquery.min.js?ver=3.6.1"></script>
+
+  <script>
+    jQuery("#fd-mobile-avatar").click(function () {
+      jQuery("#fd-chat").show();
+    });
+
+    jQuery(".fd-icon-close").click(function () {
+      jQuery("#fd-chat").hide();
+    });
+  </script>
+</body>
+
+</html>
